@@ -4732,13 +4732,13 @@ int pg_db_lo_write (SV * dbh, int fd, char * buf, size_t len)
 }
 
 /* ================================================================== */
-int pg_db_lo_lseek (SV * dbh, int fd, int offset, int whence)
+IV pg_db_lo_lseek (SV * dbh, int fd, IV offset, int whence)
 {
 
 	dTHX;
 	D_imp_dbh(dbh);
 
-	if (TSTART_slow) TRC(DBILOGFP, "%sBegin pg_db_lo_lseek (fd: %d offset: %d whence: %d)\n",
+	if (TSTART_slow) TRC(DBILOGFP, "%sBegin pg_db_lo_lseek (fd: %d offset: %"IVdf" whence: %d)\n",
 					THEADER_slow, fd, offset, whence);
 
 	if (DBIc_has(imp_dbh, DBIcf_AutoCommit)) {
@@ -4752,13 +4752,20 @@ int pg_db_lo_lseek (SV * dbh, int fd, int offset, int whence)
 		TRC(DBILOGFP, "%slo_lseek\n", THEADER_slow);
 	}
 
+#ifdef HAS64BITLO
+	if (imp_dbh->pg_server_version >= 90300)
+		return lo_lseek64(imp_dbh->conn, fd, offset, whence); /* new position, -1 on error */
+    if (offset < INT_MIN || offset > INT_MAX)
+        croak("lo_lseek offset out of range of integer");
+#endif
+
 	return lo_lseek(imp_dbh->conn, fd, offset, whence); /* new position, -1 on error */
 
 }
 
 
 /* ================================================================== */
-int pg_db_lo_tell (SV * dbh, int fd)
+IV pg_db_lo_tell (SV * dbh, int fd)
 {
 
 	dTHX;
@@ -4777,19 +4784,24 @@ int pg_db_lo_tell (SV * dbh, int fd)
 		TRC(DBILOGFP, "%slo_tell\n", THEADER_slow);
 	}
 
-	return lo_tell(imp_dbh->conn, fd); /* current position, <0 on error */
+#ifdef HAS64BITLO
+	if (imp_dbh->pg_server_version >= 90300)
+		return (IV)lo_tell64(imp_dbh->conn, fd); /* current position, <0 on error */
+#endif
+
+	return (IV)lo_tell(imp_dbh->conn, fd); /* current position, <0 on error */
 
 }
 
 /* ================================================================== */
-int pg_db_lo_truncate (SV * dbh, int fd, size_t len)
+int pg_db_lo_truncate (SV * dbh, int fd, IV len)
 {
 
 	dTHX;
 	D_imp_dbh(dbh);
 
-	if (TSTART_slow) TRC(DBILOGFP, "%sBegin pg_db_lo_truncate (fd: %d length: %d)\n",
-						 THEADER_slow, fd, (int)len);
+	if (TSTART_slow) TRC(DBILOGFP, "%sBegin pg_db_lo_truncate (fd: %d length: %"IVdf")\n",
+						 THEADER_slow, fd, len);
 
 	if (DBIc_has(imp_dbh, DBIcf_AutoCommit)) {
 		croak("Cannot call pg_lo_truncate when AutoCommit is on");
@@ -4801,6 +4813,13 @@ int pg_db_lo_truncate (SV * dbh, int fd, size_t len)
 	if (TLIBPQ_slow) {
 		TRC(DBILOGFP, "%slo_truncate\n", THEADER_slow);
 	}
+
+#ifdef HAS64BITLO
+	if (imp_dbh->pg_server_version >= 90300)
+		return (IV)lo_truncate64(imp_dbh->conn, fd, (pg_int64)len); /* 0 success, <0 on error */
+    if (len < INT_MIN || len > INT_MAX)
+        croak("lo_truncate len out of range of integer");
+#endif
 
 	return lo_truncate(imp_dbh->conn, fd, len); /* 0 success, <0 on error */
 

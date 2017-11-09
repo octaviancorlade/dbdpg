@@ -486,10 +486,10 @@ void
 pg_lo_lseek(dbh, fd, offset, whence)
 	SV * dbh
 	int fd
-	int offset
+	IV offset
 	int whence
 	CODE:
-		const int ret = pg_db_lo_lseek(dbh, fd, offset, whence);
+		const IV ret = pg_db_lo_lseek(dbh, fd, offset, whence);
 		ST(0) = (ret >= 0) ? sv_2mortal(newSViv(ret)) : &PL_sv_undef;
 
 
@@ -498,7 +498,7 @@ pg_lo_tell(dbh, fd)
 	SV * dbh
 	int fd
 	CODE:
-		const int ret = pg_db_lo_tell(dbh, fd);
+		const IV ret = pg_db_lo_tell(dbh, fd);
 		ST(0) = (ret >= 0) ? sv_2mortal(newSViv(ret)) : &PL_sv_undef;
 
 
@@ -506,7 +506,7 @@ void
 pg_lo_truncate(dbh, fd, len)
 	SV * dbh
 	int fd
-	size_t len
+	IV len
 	CODE:
 		const int ret = pg_db_lo_truncate(dbh, fd, len);
 		ST(0) = (ret >= 0) ? sv_2mortal(newSViv(ret)) : &PL_sv_undef;

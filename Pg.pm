@@ -2074,6 +2074,9 @@ Changes the current read or write location on the large object
 C<$obj_id>. Currently C<$whence> can only be 0 (which is L_SET). Returns the current
 location and C<undef> upon failure. This function cannot be used if AutoCommit is enabled.
 
+If connecting to a server PostgreSQL 9.3 or later and your perl supports 64-bit ints, this
+will use the 64-bit routines.
+
 =item pg_lo_tell
 
   $loc = $dbh->pg_lo_tell($lobj_fd);
@@ -2081,12 +2084,18 @@ location and C<undef> upon failure. This function cannot be used if AutoCommit i
 Returns the current read or write location on the large object C<$lobj_fd> and C<undef> upon failure.
 This function cannot be used if AutoCommit is enabled.
 
+If connecting to a server PostgreSQL 9.3 or later and your perl supports 64-bit ints, this
+will use the 64-bit routines.
+
 =item pg_lo_truncate
 
   $loc = $dbh->pg_lo_truncate($lobj_fd, $len);
 
 Truncates the given large object to the new size. Returns C<undef> on failure, and 0 on success.
 This function cannot be used if AutoCommit is enabled.
+
+If connecting to a server PostgreSQL 9.3 or later and your perl supports 64-bit ints, this
+will use the 64-bit routines.
 
 =item pg_lo_close
 
